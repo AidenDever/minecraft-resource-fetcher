@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Cached data (auto-fetched on first run)
+data/cache/
+
+# Claude dev files
+.claude/

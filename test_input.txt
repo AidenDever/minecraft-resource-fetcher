@@ -1,0 +1,38 @@
+167 spruce logs
+288 spruce planks
+119 spruce  stairs
+63 spruce  trapdoors
+4 spruce  doors
+8 spruce fences
+22 spruce fence doors
+16 spruce signs
+78 stone bricks
+99 stone bricks stairs
+23 stone bricks slabs
+8 stone bricks walls
+20 cobblestones
+64 glass pane
+32 spruce leaves
+16 torchflowers
+6 small flowers
+3 rose bush
+16 lanterns
+6 campfire
+30 chests
+30  barrels
+18 bookshelves
+1 enchantment table
+22 red carpet
+2 beds
+2 armour stands
+2 sets of armour
+6 furnces
+1 loom
+2 anvil
+2 stonecutter
+2 blast furnce
+2 smithing table
+1 crafting table
+3 scaffolding
+6 flower pot
+1 cauldron

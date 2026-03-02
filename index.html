@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Resource Calculator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23866043'/><rect width='16' height='5' fill='%235EA535'/><rect width='16' height='1' y='5' fill='%234a8a2a'/></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f2f4f2;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      padding: 2rem 1rem;
+      color: #1a1a1a;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #2d6a4f;
+    }
+    h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+
+    select {
+      font-family: inherit;
+      font-size: 0.825rem;
+      font-weight: 500;
+      color: #333;
+      border: 1px solid #d4d8d4;
+      background: #fff;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+    }
+    select:focus { outline: 2px solid #2d6a4f; outline-offset: -1px; }
+
+    /* ── Input card ── */
+    .input-card {
+      background: #fff;
+      border: 1px solid #d4d8d4;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      padding: 0.65rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      resize: vertical;
+      display: block;
+      color: inherit;
+      line-height: 1.5;
+    }
+    textarea:focus {
+      outline: 2px solid #2d6a4f;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+
+    .input-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.75rem;
+    }
+
+    button {
+      background: #2d6a4f;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.6rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+    button:hover:not(:disabled) { background: #245a41; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ── Results grid ── */
+    .results-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    @media (min-width: 600px) {
+      .results-grid { flex-direction: row; align-items: flex-start; }
+      .col { flex: 1; min-width: 0; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid #d4d8d4;
+      padding: 1.1rem 1.25rem 1.25rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 0.7rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid #ebebeb;
+    }
+    .card-header h2 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #555;
+    }
+    .count-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: #e8f4ee;
+      color: #2d6a4f;
+      padding: 0.1em 0.55em;
+      border-radius: 10px;
+    }
+
+    /* ── Shared table base ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .data-table td {
+      padding: 0.32rem 0.4rem;
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+    .data-table tbody tr:nth-child(even) td { background: #f7faf7; }
+
+    /* ── Resolved table ── */
+    .td-query { color: #555; word-break: break-word; }
+    .td-arrow { color: #bbb; padding: 0 0.3rem; white-space: nowrap; }
+    .td-resolved-name { font-weight: 500; word-break: break-word; }
+
+    .fuzzy-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      padding: 0.1em 0.45em;
+      background: #fef3c7;
+      color: #92400e;
+      border-radius: 3px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* ── Materials table ── */
+    .td-qty {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: right;
+      padding-right: 1rem;
+      color: #222;
+      white-space: nowrap;
+    }
+    .td-mat-name { color: #1a1a1a; }
+
+    /* ── Warning bar ── */
+    .warning {
+      margin-top: 1rem;
+      padding: 0.65rem 1rem;
+      background: #fff3cd;
+      color: #856404;
+      font-size: 0.875rem;
+      border-left: 3px solid #ffc107;
+    }
+
+    .hidden { display: none; }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 2.5rem;
+      font-size: 0.78rem;
+      color: #999;
+      text-align: center;
+    }
+    footer a { color: #2d6a4f; text-decoration: underline; font-weight: 500; }
+    footer a:hover { color: #1a4a35; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Minecraft Resource Calculator</h1>
+      <select id="editionSelect" onchange="onEditionChange()">
+        <optgroup label="Java Edition">
+          <option value="java_1_21_1">Java 1.21.1</option>
+        </optgroup>
+      </select>
+    </header>
+
+    <div class="input-card">
+      <textarea id="input" placeholder="Paste your item list here, one item per line.
+
+Examples:
+64 oak planks
+2 stacks of stone bricks
+32 glass pane
+4 oak stairs"></textarea>
+      <div class="input-footer">
+        <button id="calcBtn" onclick="calculate()">Calculate</button>
+      </div>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="results-grid">
+
+        <section class="card col">
+          <div class="card-header">
+            <h2>Resolved items</h2>
+            <span id="resolvedCount" class="count-badge"></span>
+          </div>
+          <table class="data-table">
+            <tbody id="resolvedTbody"></tbody>
+          </table>
+        </section>
+
+        <section class="card col">
+          <div class="card-header">
+            <h2>Materials needed</h2>
+            <span id="materialsCount" class="count-badge"></span>
+          </div>
+          <table class="data-table">
+            <tbody id="materialsTbody"></tbody>
+          </table>
+        </section>
+
+      </div>
+      <div id="warnings" class="warning hidden"></div>
+    </div>
+  </div>
+
+  <footer>
+    Created by <a href="https://github.com/AidenDever" target="_blank" rel="noopener">AidenDever</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+  <script>
+    'use strict';
+
+    // Add new entries here to extend the dropdown
+    const EDITIONS = {
+      java_1_21_1: 'https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/1.21.1',
+    };
+    let _baseUrl = EDITIONS.java_1_21_1;
+
+    function onEditionChange() {
+      _baseUrl   = EDITIONS[document.getElementById('editionSelect').value];
+      _itemsById = _itemsByName = _recipeIndex = _fuse = null;
+      document.getElementById('results').classList.add('hidden');
+    }
+
+    const ALIASES = { beds: 'white_bed', bed: 'white_bed', bookshelves: 'bookshelf' };
+    const SUFFIX_SUBS = [
+      ['_fence_doors', '_fence_gate'],
+      ['_fence_door',  '_fence_gate'],
+    ];
+
+    let _itemsById   = null;
+    let _itemsByName = null;
+    let _recipeIndex = null;
+    let _fuse        = null;
+
+    // =========================================================================
+    // Data loading
+    // =========================================================================
+
+    async function loadData() {
+      if (_itemsById !== null) return;
+
+      const [itemsRaw, recipesRaw] = await Promise.all([
+        fetch(_baseUrl + '/items.json').then(r => {
+          if (!r.ok) throw new Error('Failed to fetch items.json (' + r.status + ')');
+          return r.json();
+        }),
+        fetch(_baseUrl + '/recipes.json').then(r => {
+          if (!r.ok) throw new Error('Failed to fetch recipes.json (' + r.status + ')');
+          return r.json();
+        }),
+      ]);
+
+      _itemsById   = {};
+      _itemsByName = {};
+      for (const item of itemsRaw) {
+        _itemsById[item.id]     = item;
+        _itemsByName[item.name] = item;
+      }
+
+      _fuse = new Fuse(itemsRaw, {
+        keys: ['name'],
+        threshold: 0.4,
+        includeScore: true,
+      });
+
+      _recipeIndex = buildRecipeIndex(recipesRaw, _itemsById);
+    }
+
+    // =========================================================================
+    // Recipe index builder
+    // =========================================================================
+
+    function buildRecipeIndex(recipesRaw, itemsById) {
+      const index = {};
+
+      for (const [resultIdStr, recipeList] of Object.entries(recipesRaw)) {
+        const resultId = parseInt(resultIdStr, 10);
+        if (!(resultId in itemsById)) continue;
+
+        for (const recipe of recipeList) {
+          const ingredients = [];
+
+          if ('inShape' in recipe) {
+            for (const row of recipe.inShape) {
+              for (const cell of row) {
+                if (cell !== null && cell !== undefined) {
+                  ingredients.push(parseInt(cell, 10));
+                }
+              }
+            }
+          } else if ('ingredients' in recipe) {
+            for (const ing of recipe.ingredients) {
+              ingredients.push(parseInt(ing, 10));
+            }
+          } else {
+            continue;
+          }
+
+          const resultCount = (recipe.result && recipe.result.count) ? recipe.result.count : 1;
+          if (!index[resultId]) index[resultId] = [];
+          index[resultId].push({ result_id: resultId, result_count: resultCount, ingredients });
+        }
+      }
+
+      return index;
+    }
+
+    // =========================================================================
+    // Recursive resolver
+    // =========================================================================
+
+    function resolveToMaterials(itemId, qty, index, itemsById, visited) {
+      if (!visited) visited = new Set();
+
+      const item = itemsById[itemId];
+      const displayName = item ? item.displayName : String(itemId);
+
+      if (!(itemId in index) || visited.has(itemId)) {
+        return { [displayName]: qty };
+      }
+
+      const recipe = index[itemId][0];
+      const resultCount = recipe.result_count || 1;
+      const batches = Math.ceil(qty / resultCount);
+
+      const newVisited = new Set(visited);
+      newVisited.add(itemId);
+
+      const ingredientCounts = {};
+      for (const ingId of recipe.ingredients) {
+        ingredientCounts[ingId] = (ingredientCounts[ingId] || 0) + 1;
+      }
+
+      const totals = {};
+      for (const [ingIdStr, count] of Object.entries(ingredientCounts)) {
+        const ingId = parseInt(ingIdStr, 10);
+        const sub = resolveToMaterials(ingId, batches * count, index, itemsById, newVisited);
+        for (const [name, q] of Object.entries(sub)) {
+          totals[name] = (totals[name] || 0) + q;
+        }
+      }
+
+      return totals;
+    }
+
+    // =========================================================================
+    // Item name resolver
+    // =========================================================================
+
+    function resolveItemName(query) {
+      let normalized = query.trim().toLowerCase().replace(/ /g, '_');
+
+      normalized = ALIASES[normalized] || normalized;
+
+      for (const [oldSuffix, newSuffix] of SUFFIX_SUBS) {
+        if (normalized.endsWith(oldSuffix)) {
+          normalized = normalized.slice(0, -oldSuffix.length) + newSuffix;
+          break;
+        }
+      }
+
+      if (normalized in _itemsByName) {
+        return [_itemsByName[normalized], 100];
+      }
+
+      const results = _fuse.search(normalized);
+      if (results.length === 0) return [null, 0];
+
+      const best = results[0];
+      const confidence = Math.round((1 - best.score) * 100);
+      return [best.item, confidence];
+    }
+
+    // =========================================================================
+    // Parser
+    // =========================================================================
+
+    const PREFIX_RE   = /^\s*(?:[-*\u2022]|\d+[.):])[ \t]*/;
+    const STACK_RE    = /(\d+)\s+stacks?/i;
+    const LEADING_QTY = /^(\d+)\s+(.+)$/i;
+    const TRAILING_X  = /^(.+?)\s*[xX](\d+)$/;
+    const COLON_QTY   = /^(.+?):\s*(\d+)$/;
+    const PAREN_QTY   = /^(.+?)\s*\((\d+)\)$/;
+
+    function parseLine(line) {
+      line = line.replace(PREFIX_RE, '').trim();
+      if (!line) return null;
+
+      const stackMatch = STACK_RE.exec(line);
+      if (stackMatch) {
+        const qty = parseInt(stackMatch[1], 10) * 64;
+        let itemText = line.replace(STACK_RE, '').trim();
+        itemText = itemText.replace(/^[of]+|[of]+$/g, '').trim();
+        return [itemText, qty];
+      }
+
+      for (const pattern of [LEADING_QTY, TRAILING_X, COLON_QTY, PAREN_QTY]) {
+        const m = pattern.exec(line);
+        if (m) {
+          let itemText, qtyStr;
+          if (pattern === LEADING_QTY) {
+            [, qtyStr, itemText] = m;
+          } else {
+            [, itemText, qtyStr] = m;
+          }
+          return [itemText.trim(), parseInt(qtyStr, 10)];
+        }
+      }
+
+      return [line, 1];
+    }
+
+    function parseResourceList(text) {
+      const results = [];
+      for (const rawLine of text.split('\n')) {
+        const parsed = parseLine(rawLine);
+        if (parsed !== null) results.push(parsed);
+      }
+      return results;
+    }
+
+    // =========================================================================
+    // Calculate + render
+    // =========================================================================
+
+    function calculateMaterials(parsedList) {
+      const totals     = {};
+      const resolved   = [];
+      const unresolved = [];
+
+      for (const [itemText, qty] of parsedList) {
+        const [item, confidence] = resolveItemName(itemText);
+        if (!item) {
+          unresolved.push(itemText);
+          continue;
+        }
+        resolved.push([itemText, item.displayName, confidence]);
+        const sub = resolveToMaterials(item.id, qty, _recipeIndex, _itemsById);
+        for (const [name, amount] of Object.entries(sub)) {
+          totals[name] = (totals[name] || 0) + amount;
+        }
+      }
+
+      const sortedMaterials = Object.fromEntries(
+        Object.entries(totals).sort(([, a], [, b]) => b - a)
+      );
+
+      return [sortedMaterials, resolved, unresolved];
+    }
+
+    function renderResults(materials, resolved, unresolved) {
+      // Resolved items table
+      const resolvedTbody = document.getElementById('resolvedTbody');
+      resolvedTbody.innerHTML = '';
+      for (const [query, displayName, confidence] of resolved) {
+        const tr     = document.createElement('tr');
+        const tdQ    = document.createElement('td');
+        const tdArr  = document.createElement('td');
+        const tdName = document.createElement('td');
+
+        tdQ.className    = 'td-query';
+        tdQ.textContent  = query;
+        tdArr.className  = 'td-arrow';
+        tdArr.textContent = '\u2192';
+        tdName.className = 'td-resolved-name';
+        tdName.textContent = displayName;
+
+        if (confidence < 100) {
+          const badge = document.createElement('span');
+          badge.className   = 'fuzzy-badge';
+          badge.textContent = 'fuzzy ' + confidence + '%';
+          tdName.appendChild(badge);
+        }
+
+        tr.appendChild(tdQ);
+        tr.appendChild(tdArr);
+        tr.appendChild(tdName);
+        resolvedTbody.appendChild(tr);
+      }
+      document.getElementById('resolvedCount').textContent = resolved.length;
+
+      // Materials table
+      const materialsTbody = document.getElementById('materialsTbody');
+      materialsTbody.innerHTML = '';
+      for (const [name, qty] of Object.entries(materials)) {
+        const tr     = document.createElement('tr');
+        const tdQty  = document.createElement('td');
+        const tdName = document.createElement('td');
+
+        tdQty.className   = 'td-qty';
+        tdQty.textContent = qty.toLocaleString();
+        tdName.className  = 'td-mat-name';
+        tdName.textContent = name;
+
+        tr.appendChild(tdQty);
+        tr.appendChild(tdName);
+        materialsTbody.appendChild(tr);
+      }
+      document.getElementById('materialsCount').textContent = Object.keys(materials).length;
+
+      // Warnings
+      const warningsDiv = document.getElementById('warnings');
+      if (unresolved.length > 0) {
+        warningsDiv.textContent = 'Could not resolve: ' + unresolved.map(q => '"' + q + '"').join(', ');
+        warningsDiv.classList.remove('hidden');
+      } else {
+        warningsDiv.classList.add('hidden');
+      }
+
+      document.getElementById('results').classList.remove('hidden');
+    }
+
+    async function calculate() {
+      const input = document.getElementById('input').value;
+      if (!input.trim()) return;
+
+      const btn = document.getElementById('calcBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Loading\u2026';
+
+      try {
+        await loadData();
+        const parsed = parseResourceList(input);
+        const [materials, resolved, unresolved] = calculateMaterials(parsed);
+        renderResults(materials, resolved, unresolved);
+      } catch (err) {
+        console.error(err);
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Calculate';
+      }
+    }
+  </script>
+</body>
+</html>
