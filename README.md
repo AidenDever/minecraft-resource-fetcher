@@ -1,8 +1,8 @@
 # Minecraft Resource Calculator
 
-Paste a list of Minecraft items you want to build and get back the exact raw materials you need to gather. Handles recipes recursively — ask for oak stairs and it'll trace all the way back to oak logs.
+Paste a list of Minecraft items you want to build and get back the exact raw materials you need to gather. Handles recipes recursively, ask for oak stairs and it'll trace all the way back to oak logs.
 
-**Live site → [aidendever.github.io/minecraft-resource-fetcher](https://aidendever.github.io/minecraft-resource-fetcher/)**
+**Live site: [aidendever.github.io/minecraft-resource-fetcher](https://aidendever.github.io/minecraft-resource-fetcher/)**
 
 Targets **MC Java Edition 1.21.1** (more versions can be added via the dropdown).
 
